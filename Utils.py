@@ -20,7 +20,8 @@ TRADE_URL = "https://api.huobi.pro"
 # 首次运行可通过get_accounts()获取acct_id,然后直接赋值,减少重复获取。
 ACCOUNT_ID = None
 
-#'Timestamp': '2017-06-02T06:13:49'
+
+# 'Timestamp': '2017-06-02T06:13:49'
 
 def http_get_request(url, params, add_to_headers=None):
     headers = {
@@ -30,16 +31,15 @@ def http_get_request(url, params, add_to_headers=None):
     if add_to_headers:
         headers.update(add_to_headers)
     postdata = urllib.parse.urlencode(params)
-
+    response = requests.get(url, postdata, headers=headers, timeout=5)
     try:
-        response = requests.get(url, postdata, headers=headers, timeout=5)
 
         if response.status_code == 200:
             return response.json()
         else:
             return
     except BaseException as e:
-        print("httpGet failed, detail is:%s,%s" %(response.text,e))
+        print("httpGet failed, detail is:%s,%s" % (response.text, e))
         return
 
 
@@ -51,15 +51,15 @@ def http_post_request(url, params, add_to_headers=None):
     if add_to_headers:
         headers.update(add_to_headers)
     postdata = json.dumps(params)
-
+    response = requests.post(url, postdata, headers=headers, timeout=10)
     try:
-        response = requests.post(url, postdata, headers=headers, timeout=10)
+
         if response.status_code == 200:
             return response.json()
         else:
             return
     except BaseException as e:
-        print("httpPost failed, detail is:%s,%s" %(response.text,e))
+        print("httpPost failed, detail is:%s,%s" % (response.text, e))
         return
 
 
@@ -91,7 +91,8 @@ def api_key_post(params, request_path):
     host_url = TRADE_URL
     host_name = urllib.parse.urlparse(host_url).hostname
     host_name = host_name.lower()
-    params_to_sign['Signature'] = createSign(params_to_sign, method, host_name, request_path, SECRET_KEY)
+    params_to_sign['Signature'] = createSign(params_to_sign, method, host_name, request_path,
+                                             SECRET_KEY)
     url = host_url + request_path + '?' + urllib.parse.urlencode(params_to_sign)
     return http_post_request(url, params)
 
@@ -108,4 +109,3 @@ def createSign(pParams, method, host_url, request_path, secret_key):
     signature = base64.b64encode(digest)
     signature = signature.decode()
     return signature
-

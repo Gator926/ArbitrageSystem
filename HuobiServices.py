@@ -47,6 +47,7 @@ def get_trade(symbol):
     return http_get_request(url, params)
 
 
+# 获取merge ticker
 def get_ticker(symbol):
     """
     :param symbol:
@@ -73,7 +74,6 @@ def get_detail(symbol):
 # 获取  支持的交易对
 def get_symbols(long_polling=None):
     """
-
     """
     params = {}
     if long_polling:
@@ -96,12 +96,16 @@ def get_accounts():
     return api_key_get(params, path)
 
 
+ACCOUNT_ID = 0
+
+
 # 获取当前账户资产
 def get_balance(acct_id=None):
     """
     :param acct_id
     :return:
     """
+    global ACCOUNT_ID
 
     if not acct_id:
         accounts = get_accounts()
@@ -248,7 +252,6 @@ def orders_matchresults(symbol, types=None, start_date=None, end_date=None, _fro
 # 申请提现虚拟币
 def withdraw(address, amount, currency, fee=0, addr_tag=""):
     """
-
     :param address_id:
     :param amount:
     :param currency:btc, ltc, bcc, eth, etc ...(火币Pro支持的币种)
@@ -272,7 +275,6 @@ def withdraw(address, amount, currency, fee=0, addr_tag=""):
 # 申请取消提现虚拟币
 def cancel_withdraw(address_id):
     """
-
     :param address_id:
     :return: {
               "status": "ok",
