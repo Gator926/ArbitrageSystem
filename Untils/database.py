@@ -17,8 +17,8 @@ class Database:
         self.username = username
         self.password = password
         self.database_name = database_name
-        self.database = pymysql.connect(host=host, port=port, username=username, password=password,
-                                        database_name=database_name)
+        self.database = pymysql.connect(host=host, port=port, user=username, password=password,
+                                        db=database_name)
 
     def __del__(self):
         """
