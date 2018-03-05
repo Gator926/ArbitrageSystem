@@ -1,5 +1,5 @@
 from Utils import *
-from __init__ import *
+from Untils.Log import *
 '''
 Market data API
 '''
