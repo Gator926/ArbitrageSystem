@@ -96,14 +96,15 @@ class CrossStrategy:
         sma_long = np.mean(numpy_long)
         sma_short = np.mean(numpy_short)
 
-        return sma_long, sma_short
+        return sma_long, sma_short, k_line_long[0]
 
-    def main_strategy(self, sma_long, sma_short):
+    def main_strategy(self, sma_long, sma_short, current_price):
 
         # 短期均线高于长期均线，形成金叉
         if sma_long < sma_short:
             # 现有资金满足交易阀值
-            logger.info("系统处于金叉中, 现差价：%f" % (sma_short - sma_long))
+            logger.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
+                        ((sma_short - sma_long), sma_long, sma_short, current_price))
             if self.base_amount >= 1 and self.aim_amount < 0.0010:
                 # 上次交易并为产生买入信号
                 if self.last_action == "sell" or self.last_action is None:
@@ -119,7 +120,8 @@ class CrossStrategy:
         # 短期均线低于长期均线，形成死叉
         if sma_long > sma_short:
             # 现有资金满足交易阀值
-            logger.info("系统处于死叉中, 现差价：%f" % (sma_long - sma_short))
+            logger.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
+                        ((sma_long - sma_short), sma_long, sma_short, current_price))
             if self.aim_amount >= 0.0010:
                 # 上次并没产生卖出信号
                 if self.last_action == 'buy' or self.last_action is None:
@@ -135,6 +137,7 @@ if __name__ == '__main__':
     cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
                                    last_action='buy')
     while 1:
-        sma_long, sma_short = cross_strategy.get_data()
-        cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short)
+        sma_long, sma_short, current_price = cross_strategy.get_data()
+        cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
+                                     current_price=current_price)
         time.sleep(5)
