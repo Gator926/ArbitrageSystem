@@ -79,6 +79,7 @@ class CrossStrategy:
                                period='30min', size=60)
         except Exception as E:
             logger.error(E)
+            get_data()
         k_line_long = []  # 60日均线
         k_line_short = []  # 30日均线
 
@@ -147,7 +148,10 @@ if __name__ == '__main__':
     cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
                                    last_action='buy')
     while 1:
-        sma_long, sma_short, current_price = cross_strategy.get_data()
-        cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
-                                     current_price=current_price)
-        time.sleep(5)
+        try:
+            sma_long, sma_short, current_price = cross_strategy.get_data()
+            cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
+                                         current_price=current_price)
+            time.sleep(5)
+        except Exception as E:
+            logger.error(E)
