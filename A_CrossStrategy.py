@@ -1,151 +1,140 @@
-"""
-实盘——金叉交易策略
-
-策略：
-概述：金叉策略，短期均线为30日，长期均线为60日
-止盈：暂无
-止损：暂无
-
-更新：
-1. 2018年3月1日  将买入、卖出信号通过短信发送
-"""
-
-from HuobiServices import *
-from Untils.database import *
 from Untils.PhoneMessage import *
+from Untils.Database import *
+from Untils.BasicFunction import *
+from HuobiServices import *
 from decimal import *
-from settings import *
 import numpy as np
-import time
-
-# 初始化数据库
-conn = Database(settings['host'], settings['user'], settings['pass'], settings['database_name'])
-
-# 初始化阿里云云短信类
-cli = AliyunSMS()
-
-# 错误内容，避免短时间发送相同的错误
-error_content = ""
 
 
-# 查询账户指定余额
-# 例如get_account_balance('usdt')
-def get_account_balance(currency):
-    result = get_balance()
-    number = ""
-    for each in result['data']['list']:
-        if each['currency'] == currency and each['type'] == 'trade':
-            number = each['balance']
-            return number[0:number.index(".") + 5]  # 保留小数点4位
+class CrossStrategy:
 
+    def __init__(self, base_currency_name="usdt", aim_currency_name="btc", last_action=None):
+        """
+        构造函数
+        :param base_currency_name:  基准货币
+        :param aim_currency_name:   欲购买的目标货币
+        """
+        # 初始化数据库配置
+        try:
+            self.database = Database(settings['host'], settings['port'], settings['user'], settings[
+                'pass'], settings['database_name'])
+        except Exception as E:
+            logger.error(E)
+        finally:
+            logger.info("初始化数据库成功")
 
-# 全仓使用买入BTC函数
-def buy_currency():
-    number = get_account_balance('usdt')
-    result = send_order(amount=number, source='api', symbol='btcusdt', _type='buy-market')
-    conn.insert("insert into trade_history (order_id) values (%s)" % result['data'])
-    return result
+        # 初始化阿里云短信各模块
+        try:
+            self.scli = AliyunSMS()
+            resp = self.scli.request(phone_numbers=settings['phone'],
+                                     sign=settings['sign'],
+                                     template_code='SMS_126355043',
+                                     template_param={'time': get_str_datetime(), 'type': '系统运行'})
+        except Exception as E:
+            logger.error(E)
+        finally:
+            logger.info("初始化阿里云短信成功")
 
+        # 初始化交易对名称
+        self.base_currency_name = base_currency_name
+        self.aim_currency_name = aim_currency_name
 
-# 全仓卖出BTC函数
-def sell_currency():
-    number = get_account_balance('btc')
-    result = send_order(amount=number, source='api', symbol='btcusdt', _type='sell-market')
-    conn.insert("insert into trade_history (order_id) values (%s)" % result['data'])
-    return result
+        # 初始化交易信号，避免在金叉或者死叉中多次重复交易
+        self.last_action = last_action
 
+        # 初始化资金信息
+        try:
+            self.base_amount = Decimal(get_account_balance(base_currency_name))
+            self.aim_amount = Decimal(get_account_balance(aim_currency_name))
+        except Exception as E:
+            logger.error(E)
+        finally:
+            logger.info("初始化资金账户成功")
 
-# 初始化账户信息
-amount = Decimal(get_account_balance('usdt'))
-currency = Decimal(get_account_balance('btc'))
+    # def __del__(self):
+    #     """
+    #     析构函数
+    #     """
+    #     logger.info("系统退出")
+    #     try:
+    #         resp = self.scli.request(phone_numbers=settings['phone'],
+    #                                  sign=settings['sign'],
+    #                                  template_code='SMS_126355043',
+    #                                  template_param={'time': get_str_datetime(), 'type': '系统退出'})
+    #     except Exception as E:
+    #         logger.error(E)
+    #     finally:
+    #         logger.info("系统退出成功")
 
-while 1:
-    try:
-        result = get_kline(symbol='btcusdt', period='30min', size=60)
+    def get_data(self):
+        """
+        获取K线的书，并求出30日和60日均线的平均值
+        :param base_currency_name: 基准货币
+        :param aim_currency_name:  欲购买的货币
+        :return:
+        """
+        # 获取K线数据
+        try:
+            result = get_kline(symbol=self.aim_currency_name+self.base_currency_name,
+                               period='30min', size=60)
+        except Exception as E:
+            logger.error(E)
         k_line_long = []  # 60日均线
         k_line_short = []  # 30日均线
 
+        # 将获取的数据加入数组中
         for index in range(0, len(result['data'])):
             if index < 30:
                 k_line_short.append(result['data'][index]['close'])
             k_line_long.append(result['data'][index]['close'])
 
+        # 使用numpy的数组存放数据
         numpy_long = np.array(k_line_long)
         numpy_short = np.array(k_line_short)
 
-        SMA_long = np.mean(numpy_long)
-        SMA_short = np.mean(numpy_short)
+        # 分别求出30日和60日均线的平均值
+        sma_long = np.mean(numpy_long)
+        sma_short = np.mean(numpy_short)
 
-        # 格式化时间
-        time_local = time.localtime(time.time())
-        dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+        return sma_long, sma_short
 
-        # 短期均线超过长期均线,形成金叉
-        if SMA_short > SMA_long:
+    def main_strategy(self, sma_long, sma_short):
 
-            print("时间\u3000\u3000：%s\n状态\u3000\u3000：金叉\n长线均价：%f\n短线均价：%f\n差额\u3000\u3000：%f\n" %
-                  (dt, SMA_long, SMA_short, SMA_short - SMA_long))
+        # 短期均线高于长期均线，形成金叉
+        if sma_long < sma_short:
+            # 现有资金满足交易阀值
+            logger.info("系统处于金叉中, 现差价：%f" % (sma_short - sma_long))
+            if self.base_amount >= 1 and self.aim_amount < 0.0010:
+                # 上次交易并为产生买入信号
+                if self.last_action == "sell" or self.last_action is None:
+                    result = buy_currency(database=self.database, scli=self.scli,
+                                          base_currency_name=self.base_currency_name,
+                                          aim_currency_name=self.aim_currency_name)
+                    result = {'status': 'ok'}
+                    if result['status'] == 'ok':
+                        self.last_action = 'buy'
+                        logger.info("将上次操作信号更新为" + self.last_action)
 
-            # 账户中btc金额小于0.001且usdt大于等于1, 能满足最小买入额度
-            if currency < 0.0010 and amount >= 1:
-                # 买入btc
-                # buy_currency()
-                print("目前处于金叉中, 已进行买入, 请查看")
 
-                # 发送交易短信
-                resp = cli.request(phone_numbers=settings['phone'],
-                                   sign=settings['sign'],
-                                   template_code='SMS_126355043',
-                                   template_param={'time': dt, 'type': '买入'})
+        # 短期均线低于长期均线，形成死叉
+        if sma_long > sma_short:
+            # 现有资金满足交易阀值
+            logger.info("系统处于死叉中, 现差价：%f" % (sma_long - sma_short))
+            if self.aim_amount >= 0.0010:
+                # 上次并没产生卖出信号
+                if self.last_action == 'buy' or self.last_action is None:
+                    result = sell_currency(database=self.database, scli=self.scli,
+                                           base_currency_name=self.base_currency_name,
+                                           aim_currency_name=self.aim_currency_name)
+                    result = {'status': 'ok'}
+                    if result['status'] == 'ok':
+                        self.last_action = 'sell'
+                        logger.info("将上次操作信号更新为" + self.last_action)
 
-                # 更新账户信息
-                amount = Decimal(get_account_balance('usdt'))
-                currency = Decimal(get_account_balance('btc'))
-
-                # 休眠5分钟，避免价格起伏，造成多次交易
-                time.sleep(60*5)
-
-        # 长期均线超过短期均线,形成死叉
-        if SMA_long > SMA_short:
-
-            print("时间\u3000\u3000：%s\n状态\u3000\u3000：死叉\n长线均价：%f\n短线均价：%f\n差额\u3000\u3000：%f\n"
-                  % (dt, SMA_long, SMA_short, SMA_long - SMA_short))
-
-            # 账户中btc大于等于0.001, 能满足最小卖出额度
-            if currency >= 0.0010:
-                # 卖出btc
-                # sell_currency()
-                print("目前处于死叉中, 已进行卖出, 请查看")
-
-                # 发送交易短信
-                resp = cli.request(phone_numbers=settings['phone'],
-                                   sign=settings['sign'],
-                                   template_code='SMS_126355043',
-                                   template_param={'time': dt, 'type': '卖出'})
-
-                # 更新账户信息
-                amount = Decimal(get_account_balance('usdt'))
-                currency = Decimal(get_account_balance('btc'))
-
-                # 休眠5分钟，避免价格起伏，造成多次交易
-                time.sleep(60 * 5)
-
-        time.sleep(10)
-
-    # 超时错误
-    except TimeoutError as time_out_error:
-        print(time_out_error)
-        time.sleep(60)
-
-    # 捕获其他错误
-    except Exception as E:
-        print(E)
-
-        # 检测是否为上次发送的相同错误
-        if error_content != E:
-            # 发送错误日志短信
-            resp = cli.request(phone_numbers=settings['phone'],
-                               sign=settings['sign'],
-                               template_code='SMS_126350145',
-                               template_param={'code': 0000, 'detail': E})
-            error_content = E
+if __name__ == '__main__':
+    cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
+                                   last_action='buy')
+    # while 1:
+    sma_long, sma_short = cross_strategy.get_data()
+    cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short)
+    time.sleep(5)
