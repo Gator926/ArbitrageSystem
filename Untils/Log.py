@@ -1,3 +1,4 @@
+from logging.handlers import TimedRotatingFileHandler
 import logging
 import datetime
 import sys
@@ -9,9 +10,13 @@ logger = logging.getLogger()
 formatter = logging.Formatter('%(asctime)s  %(module)s  %(funcName)s  %(levelname)-8s:'
                               '%(message)s')
 # 文件日志
-file_handler = logging.FileHandler("%s-%s-%s.log" % (datetime.datetime.now().year,
+# file_handler = logging.FileHandler("%s-%s-%s.log" % (datetime.datetime.now().year,
+#                                                      datetime.datetime.now().month,
+#                                                      datetime.datetime.now().day))
+file_handler = TimedRotatingFileHandler(filename="%s-%s-%s.log" % (datetime.datetime.now().year,
                                                      datetime.datetime.now().month,
-                                                     datetime.datetime.now().day))
+                                                     datetime.datetime.now().day), when="D",
+                                        interval=1, backupCount=30)
 file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
 # 控制台日志
 console_handler = logging.StreamHandler(sys.stdout)
