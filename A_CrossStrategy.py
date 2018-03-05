@@ -134,7 +134,7 @@ class CrossStrategy:
 if __name__ == '__main__':
     cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
                                    last_action='buy')
-    # while 1:
-    sma_long, sma_short = cross_strategy.get_data()
-    cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short)
-    time.sleep(5)
+    while 1:
+        sma_long, sma_short = cross_strategy.get_data()
+        cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short)
+        time.sleep(5)
