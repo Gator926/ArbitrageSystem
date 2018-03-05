@@ -111,9 +111,14 @@ class CrossStrategy:
                     result = buy_currency(database=self.database, scli=self.scli,
                                           base_currency_name=self.base_currency_name,
                                           aim_currency_name=self.aim_currency_name)
-                    result = {'status': 'ok'}
                     if result['status'] == 'ok':
+                        # 避免价格波动出现多次交叉
+                        time.sleep(60*30)
+                        logger.info("交易成功，休眠30分钟")
+                        # 更新上次操作信号和账户余额
                         self.last_action = 'buy'
+                        self.base_amount = Decimal(get_account_balance(self.base_currency_name))
+                        self.aim_amount = Decimal(get_account_balance(self.aim_currency_name))
                         logger.info("将上次操作信号更新为" + self.last_action)
 
 
@@ -128,9 +133,14 @@ class CrossStrategy:
                     result = sell_currency(database=self.database, scli=self.scli,
                                            base_currency_name=self.base_currency_name,
                                            aim_currency_name=self.aim_currency_name)
-                    result = {'status': 'ok'}
                     if result['status'] == 'ok':
+                        # 避免价格波动出现多次交叉
+                        time.sleep(60 * 30)
+                        logger.info("交易成功，休眠30分钟")
+                        # 更新上次操作信号和账户余额
                         self.last_action = 'sell'
+                        self.base_amount = Decimal(get_account_balance(self.base_currency_name))
+                        self.aim_amount = Decimal(get_account_balance(self.aim_currency_name))
                         logger.info("将上次操作信号更新为" + self.last_action)
 
 if __name__ == '__main__':
