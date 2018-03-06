@@ -28,21 +28,24 @@ def buy_currency(database, scli, base_currency_name, aim_currency_name):
         number = get_account_balance(base_currency_name)
         result = send_order(amount=number, source='api',
                             symbol=aim_currency_name+base_currency_name, _type='buy-market')
+        logger.info(result)
     except Exception as E:
         logger.error(E)
 
     if result['status'] == 'ok':
         try:
             database.insert("insert into trade_history (order_id) values (%s)" % result['data'])
+        except Exception as E:
+            logger.error(E)
+        try:
             resp = scli.request(phone_numbers=settings['phone'],
                                 sign=settings['sign'],
                                 template_code='SMS_126355043',
                                 template_param={'time': get_str_datetime(), 'type': '买入'})
         except Exception as E:
             logger.error(E)
-        finally:
-            logger.info("买入成功")
-            return result
+        logger.info("买入成功")
+        return result
     if result['status'] == 'error':
         logger.error(result)
 
@@ -53,19 +56,22 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name):
         number = get_account_balance(aim_currency_name)
         result = send_order(amount=number, source='api',
                             symbol=aim_currency_name+base_currency_name, _type='sell-market')
+        logger.info(result)
     except Exception as E:
         logger.error(E)
     if result['status'] == 'ok':
         try:
             database.insert("insert into trade_history (order_id) values (%s)" % result['data'])
+        except Exception as E:
+            logger.error(E)
+        try:
             resp = scli.request(phone_numbers=settings['phone'],
                                sign=settings['sign'],
                                template_code='SMS_126355043',
                                template_param={'time': get_str_datetime(), 'type': '卖出'})
         except Exception as E:
             logger.error(E)
-        finally:
-            logger.info("卖出成功")
-            return result
+        logger.info("卖出成功")
+        return result
     if result['status'] == 'error':
         logger.error(result)
