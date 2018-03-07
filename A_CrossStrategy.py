@@ -18,10 +18,10 @@ class CrossStrategy:
         try:
             self.database = Database(settings['host'], settings['port'], settings['user'], settings[
                 'pass'], settings['database_name'])
+            log.info("初始化数据库成功")
         except Exception as E:
-            logger.error(E)
-        finally:
-            logger.info("初始化数据库成功")
+            log.error(E)
+
 
         # 初始化阿里云短信各模块
         try:
@@ -30,10 +30,10 @@ class CrossStrategy:
                                      sign=settings['sign'],
                                      template_code='SMS_126355043',
                                      template_param={'time': get_str_datetime(), 'type': '系统运行'})
+            log.info("初始化阿里云短信成功")
         except Exception as E:
-            logger.error(E)
-        finally:
-            logger.info("初始化阿里云短信成功")
+            log.error(E)
+
 
         # 初始化交易对名称
         self.base_currency_name = base_currency_name
@@ -44,27 +44,27 @@ class CrossStrategy:
 
         # 初始化资金信息
         try:
-            self.base_amount = Decimal(get_account_balance(base_currency_name))
-            self.aim_amount = Decimal(get_account_balance(aim_currency_name))
+            self.base_amount, self.aim_amount = get_account_balance(
+                base_currency_name=base_currency_name, aim_currency_name=aim_currency_name)
+            log.info("初始化资金账户成功")
         except Exception as E:
-            logger.error(E)
-        finally:
-            logger.info("初始化资金账户成功")
+            log.error(E)
+
 
     # def __del__(self):
     #     """
     #     析构函数
     #     """
-    #     logger.info("系统退出")
+    #     log.info("系统退出")
     #     try:
     #         resp = self.scli.request(phone_numbers=settings['phone'],
     #                                  sign=settings['sign'],
     #                                  template_code='SMS_126355043',
     #                                  template_param={'time': get_str_datetime(), 'type': '系统退出'})
     #     except Exception as E:
-    #         logger.error(E)
+    #         log.error(E)
     #     finally:
-    #         logger.info("系统退出成功")
+    #         log.info("系统退出成功")
 
     def get_data(self):
         """
@@ -78,8 +78,8 @@ class CrossStrategy:
             result = get_kline(symbol=self.aim_currency_name+self.base_currency_name,
                                period='30min', size=60)
         except Exception as E:
-            logger.error(E)
-            get_data()
+            log.error(E)
+            # get_data()
         k_line_long = []  # 60日均线
         k_line_short = []  # 30日均线
 
@@ -104,7 +104,7 @@ class CrossStrategy:
         # 短期均线高于长期均线，形成金叉
         if sma_long < sma_short:
             # 现有资金满足交易阀值
-            logger.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
+            log.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
                         ((sma_short - sma_long), sma_long, sma_short, current_price))
             if self.base_amount >= 1 and self.aim_amount < 0.0010:
                 # 上次交易并为产生买入信号
@@ -115,18 +115,19 @@ class CrossStrategy:
                     if result['status'] == 'ok':
                         # 避免价格波动出现多次交叉
                         time.sleep(60*30)
-                        logger.info("交易成功，休眠30分钟")
+                        log.info("交易成功，休眠30分钟")
                         # 更新上次操作信号和账户余额
                         self.last_action = 'buy'
-                        self.base_amount = Decimal(get_account_balance(self.base_currency_name))
-                        self.aim_amount = Decimal(get_account_balance(self.aim_currency_name))
-                        logger.info("将上次操作信号更新为" + self.last_action)
+                        self.base_amount, self.aim_amount = get_account_balance(
+                            base_currency_name=self.base_currency_name,
+                            aim_currency_name=self.aim_currency_name)
+                        log.info("将上次操作信号更新为" + self.last_action)
 
 
         # 短期均线低于长期均线，形成死叉
         if sma_long > sma_short:
             # 现有资金满足交易阀值
-            logger.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
+            log.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f" %
                         ((sma_long - sma_short), sma_long, sma_short, current_price))
             if self.aim_amount >= 0.0010:
                 # 上次并没产生卖出信号
@@ -137,12 +138,13 @@ class CrossStrategy:
                     if result['status'] == 'ok':
                         # 避免价格波动出现多次交叉
                         time.sleep(60 * 30)
-                        logger.info("交易成功，休眠30分钟")
+                        log.info("交易成功，休眠30分钟")
                         # 更新上次操作信号和账户余额
                         self.last_action = 'sell'
-                        self.base_amount = Decimal(get_account_balance(self.base_currency_name))
-                        self.aim_amount = Decimal(get_account_balance(self.aim_currency_name))
-                        logger.info("将上次操作信号更新为" + self.last_action)
+                        self.base_amount, self.aim_amount = get_account_balance(
+                            base_currency_name=self.base_currency_name,
+                            aim_currency_name=self.aim_currency_name)
+                        log.info("将上次操作信号更新为" + self.last_action)
 
 if __name__ == '__main__':
     cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
@@ -154,4 +156,4 @@ if __name__ == '__main__':
                                          current_price=current_price)
             time.sleep(5)
         except Exception as E:
-            logger.error(E)
+            log.error(E)
