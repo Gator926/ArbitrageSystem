@@ -1,4 +1,5 @@
 from HuobiServices import *
+from decimal import *
 import time
 
 
@@ -10,16 +11,21 @@ def get_str_datetime():
 
 
 # 例如get_account_balance('usdt')
-def get_account_balance(currency):
+def get_account_balance(base_currency_name, aim_currency_name):
     try:
         result = get_balance()
     except Exception as E:
-        logger(E)
-    number = ""
+        log(E)
+    # number = ""
+    data = []
     for each in result['data']['list']:
-        if each['currency'] == currency and each['type'] == 'trade':
+        if each['currency'] == base_currency_name and each['type'] == 'trade':
             number = each['balance']
-            return number[0:number.index(".") + 5]  # 保留小数点4位
+            data.append(number[0:number.index(".") + 5])  # 保留小数点4位
+        if each['currency'] == aim_currency_name and each['type'] == 'trade':
+            number = each['balance']
+            data.append(number[0:number.index(".") + 5])  # 保留小数点4位
+    return Decimal(data[0]), Decimal(data[1])
 
 
 # 全仓使用买入BTC函数
@@ -28,26 +34,26 @@ def buy_currency(database, scli, base_currency_name, aim_currency_name):
         number = get_account_balance(base_currency_name)
         result = send_order(amount=number, source='api',
                             symbol=aim_currency_name+base_currency_name, _type='buy-market')
-        logger.info(result)
+        log.info(result)
     except Exception as E:
-        logger.error(E)
+        log.error(E)
 
     if result['status'] == 'ok':
         try:
             database.insert("insert into trade_history (order_id) values (%s)" % result['data'])
         except Exception as E:
-            logger.error(E)
+            log.error(E)
         try:
             resp = scli.request(phone_numbers=settings['phone'],
                                 sign=settings['sign'],
                                 template_code='SMS_126355043',
                                 template_param={'time': get_str_datetime(), 'type': '买入'})
         except Exception as E:
-            logger.error(E)
-        logger.info("买入成功")
+            log.error(E)
+        log.info("买入成功")
         return result
     if result['status'] == 'error':
-        logger.error(result)
+        log.error(result)
 
 
 # 全仓卖出BTC函数
@@ -56,22 +62,22 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name):
         number = get_account_balance(aim_currency_name)
         result = send_order(amount=number, source='api',
                             symbol=aim_currency_name+base_currency_name, _type='sell-market')
-        logger.info(result)
+        log.info(result)
     except Exception as E:
-        logger.error(E)
+        log.error(E)
     if result['status'] == 'ok':
         try:
             database.insert("insert into trade_history (order_id) values (%s)" % result['data'])
         except Exception as E:
-            logger.error(E)
+            log.error(E)
         try:
             resp = scli.request(phone_numbers=settings['phone'],
                                sign=settings['sign'],
                                template_code='SMS_126355043',
                                template_param={'time': get_str_datetime(), 'type': '卖出'})
         except Exception as E:
-            logger.error(E)
-        logger.info("卖出成功")
+            log.error(E)
+        log.info("卖出成功")
         return result
     if result['status'] == 'error':
-        logger.error(result)
+        log.error(result)
