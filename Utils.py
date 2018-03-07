@@ -14,8 +14,8 @@ ACCESS_KEY = settings['ACCESS_KEY']
 SECRET_KEY = settings['SECRET_KEY']
 
 # API 请求地址
-MARKET_URL = "https://api.huobi.pro"
-TRADE_URL = "https://api.huobi.pro"
+MARKET_URL = "https://api.huobipro.com"
+TRADE_URL = "https://api.huobipro.com"
 
 # 首次运行可通过get_accounts()获取acct_id,然后直接赋值,减少重复获取。
 ACCOUNT_ID = None
@@ -31,7 +31,7 @@ def http_get_request(url, params, add_to_headers=None):
     if add_to_headers:
         headers.update(add_to_headers)
     postdata = urllib.parse.urlencode(params)
-    response = requests.get(url, postdata, headers=headers, timeout=5)
+    response = requests.get(url, postdata, headers=headers, timeout=20)
     try:
 
         if response.status_code == 200:
