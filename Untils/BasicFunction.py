@@ -36,7 +36,7 @@ def get_account_balance(base_currency_name, aim_currency_name):
         if each['currency'] == aim_currency_name and each['type'] == 'trade':
             number = each['balance']
             data[aim_currency_name] = number[0:number.index(".") + 5]  # 保留小数点4位
-    return Decimal(data[1]), Decimal(data[0])
+    return Decimal(data[base_currency_name]), Decimal(data[aim_currency_name])
 
 
 # 全仓使用买入BTC函数
