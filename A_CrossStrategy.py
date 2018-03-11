@@ -26,10 +26,10 @@ class CrossStrategy:
         # 初始化阿里云短信各模块
         try:
             self.scli = AliyunSMS()
-            resp = self.scli.request(phone_numbers=settings['phone'],
-                                     sign=settings['sign'],
-                                     template_code='SMS_126355043',
-                                     template_param={'time': get_str_datetime(), 'type': '系统运行'})
+            # resp = self.scli.request(phone_numbers=settings['phone'],
+            #                          sign=settings['sign'],
+            #                          template_code='SMS_126355043',
+            #                          template_param={'time': get_str_datetime(), 'type': '系统运行'})
             log.info("初始化阿里云短信成功")
         except Exception as E:
             log.error(E)
@@ -50,21 +50,6 @@ class CrossStrategy:
         except Exception as E:
             log.error(E)
 
-
-    # def __del__(self):
-    #     """
-    #     析构函数
-    #     """
-    #     log.info("系统退出")
-    #     try:
-    #         resp = self.scli.request(phone_numbers=settings['phone'],
-    #                                  sign=settings['sign'],
-    #                                  template_code='SMS_126355043',
-    #                                  template_param={'time': get_str_datetime(), 'type': '系统退出'})
-    #     except Exception as E:
-    #         log.error(E)
-    #     finally:
-    #         log.info("系统退出成功")
 
     def get_data(self):
         """
