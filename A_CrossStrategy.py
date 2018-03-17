@@ -90,9 +90,9 @@ class CrossStrategy:
         if sma_long < sma_short:
             # 现有资金满足交易阀值
             log.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    "
-                     "当前基础货币为：%f    当前目标货币为：%f" % ((sma_short - sma_long), sma_long, sma_short,
-                                                   current_price, self.base_amount,
-                                                   self.aim_amount))
+                     "当前基础货币为：%f    当前目标货币为：%f    上次交易信号为:%s" %
+                     ((sma_short - sma_long), sma_long, sma_short, current_price,
+                      self.base_amount, self.aim_amount, self.last_action))
             if self.base_amount >= 1 and self.aim_amount < 0.0010:
                 # 上次交易并为产生买入信号
                 if self.last_action == "sell" or self.last_action is None:
@@ -115,9 +115,9 @@ class CrossStrategy:
         if sma_long > sma_short:
             # 现有资金满足交易阀值
             log.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    "
-                     "当前基础货币为：%f    当前目标货币为：%f" % ((sma_long - sma_short), sma_long, sma_short,
-                                                   current_price, self.base_amount,
-                                                   self.aim_amount))
+                     "当前基础货币为：%f    当前目标货币为：%f    上次交易信号为:%s" %
+                     ((sma_long - sma_short), sma_long, sma_short, current_price,
+                      self.base_amount, self.aim_amount, self.last_action))
             if self.aim_amount >= 0.0010:
                 # 上次交易并为产生卖出信号
                 if self.last_action == 'buy' or self.last_action is None:
