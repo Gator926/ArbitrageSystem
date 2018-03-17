@@ -61,7 +61,7 @@ class CrossStrategy:
         # 获取K线数据
         try:
             result = get_kline(symbol=self.aim_currency_name+self.base_currency_name,
-                               period='30min', size=60)
+                               period='30min', size=50)
         except Exception as E:
             log.error(E)
             # get_data()
@@ -70,7 +70,7 @@ class CrossStrategy:
 
         # 将获取的数据加入数组中
         for index in range(0, len(result['data'])):
-            if index < 30:
+            if index < 38:
                 k_line_short.append(result['data'][index]['close'])
             k_line_long.append(result['data'][index]['close'])
 
@@ -143,6 +143,6 @@ if __name__ == '__main__':
             sma_long, sma_short, current_price = cross_strategy.get_data()
             cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
                                          current_price=current_price)
-            time.sleep(5)
+            time.sleep(10)
         except Exception as E:
             log.error(E)
