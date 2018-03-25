@@ -2,7 +2,6 @@ from Untils.PhoneMessage import *
 from Untils.Database import *
 from Untils.BasicFunction import *
 from HuobiServices import *
-from decimal import *
 import numpy as np
 
 
@@ -26,10 +25,6 @@ class CrossStrategy:
         # 初始化阿里云短信各模块
         try:
             self.scli = AliyunSMS()
-            # resp = self.scli.request(phone_numbers=settings['phone'],
-            #                          sign=settings['sign'],
-            #                          template_code='SMS_126355043',
-            #                          template_param={'time': get_str_datetime(), 'type': '系统运行'})
             log.info("初始化阿里云短信成功")
         except Exception as E:
             log.error(E)
@@ -137,7 +132,7 @@ class CrossStrategy:
 
 if __name__ == '__main__':
     cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
-                                   last_action='buy')
+                                   last_action='sell')
     while 1:
         try:
             sma_long, sma_short, current_price = cross_strategy.get_data()
