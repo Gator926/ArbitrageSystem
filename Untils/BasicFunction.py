@@ -51,7 +51,7 @@ def buy_currency(database, scli, base_currency_name, aim_currency_name):
 
     if result['status'] == 'ok':
         try:
-            sql = "insert into trade_history (order_id) values (%s)" % result['data']
+            sql = "insert into trade_history (order_id) values ('%s')" % result['data']
             database.insert(sql)
         except Exception as E:
             log.error(sql)
@@ -80,7 +80,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name):
         log.error(E)
     if result['status'] == 'ok':
         try:
-            sql = "insert into trade_history (order_id) values (%s)" % result['data']
+            sql = "insert into trade_history (order_id) values ('%s')" % result['data']
             database.insert(sql)
         except Exception as E:
             log.error(sql)
