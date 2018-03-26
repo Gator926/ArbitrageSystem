@@ -138,6 +138,6 @@ if __name__ == '__main__':
             sma_long, sma_short, current_price = cross_strategy.get_data()
             cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
                                          current_price=current_price)
-            time.sleep(10)
         except Exception as E:
             log.error(E)
+        time.sleep(60)
