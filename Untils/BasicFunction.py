@@ -23,19 +23,23 @@ def get_account_balance_single(currency):
 
 
 # 例如get_account_balance('usdt')
-def get_account_balance(base_currency_name, aim_currency_name):
+def get_account_balance(database, base_currency_name, aim_currency_name):
     try:
         result = get_balance()
     except Exception as E:
-        log(E)
+        log.error(E)
     data = {}
     for each in result['data']['list']:
-        if each['currency'] == base_currency_name and each['type'] == 'trade':
-            number = each['balance']
-            data[base_currency_name] = number[0:number.index(".") + 5]  # 保留小数点4位
         if each['currency'] == aim_currency_name and each['type'] == 'trade':
             number = each['balance']
             data[aim_currency_name] = number[0:number.index(".") + 5]  # 保留小数点4位
+
+    try:
+        result = database.select("SELECT rest_amount FROM trade_cross_pair WHERE base_currency_name = '%s' and "
+                                 "aim_currency_name = '%s'" % (base_currency_name, aim_currency_name))
+        data[base_currency_name] = result[0][0]
+    except Exception as E:
+        log.error(E)
     return Decimal(data[base_currency_name]), Decimal(data[aim_currency_name])
 
 
