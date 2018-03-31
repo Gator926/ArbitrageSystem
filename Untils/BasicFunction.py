@@ -9,6 +9,7 @@ def get_str_datetime():
     dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
     return dt
 
+
 # 例如get_account_balance('usdt')
 def get_account_balance_single(currency):
     try:
@@ -19,7 +20,7 @@ def get_account_balance_single(currency):
         if each['currency'] == currency and each['type'] == 'trade':
             number = each['balance']
             # data.append(number[0:number.index(".") + 5])  # 保留小数点4位
-    return number[0:number.index(".") + 5]
+    return number
 
 
 # 例如get_account_balance('usdt')
@@ -31,8 +32,9 @@ def get_account_balance(database, base_currency_name, aim_currency_name):
     data = {}
     for each in result['data']['list']:
         if each['currency'] == aim_currency_name and each['type'] == 'trade':
-            number = each['balance']
-            data[aim_currency_name] = number[0:number.index(".") + 5]  # 保留小数点4位
+            # number = each['balance']
+            # data[aim_currency_name] = number[0:number.index(".") + 5]  # 保留小数点4位
+            data[aim_currency_name] = each['balance']
 
     try:
         result = database.select("SELECT rest_amount FROM trade_cross_pair WHERE base_currency_name = '%s' and "
