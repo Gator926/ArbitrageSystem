@@ -21,14 +21,12 @@ class CrossStrategy:
         except Exception as E:
             log.error(E)
 
-
         # 初始化阿里云短信各模块
         try:
             self.scli = AliyunSMS()
             log.info("初始化阿里云短信成功")
         except Exception as E:
             log.error(E)
-
 
         # 初始化交易对名称
         self.base_currency_name = base_currency_name
@@ -45,7 +43,6 @@ class CrossStrategy:
             log.info("初始化资金账户成功")
         except Exception as E:
             log.error(E)
-
 
     def get_data(self):
         """
@@ -106,7 +103,6 @@ class CrossStrategy:
                         # 避免价格波动出现多次交叉
                         log.info("交易成功，休眠30分钟")
                         time.sleep(60*30)
-
 
         # 短期均线低于长期均线，形成死叉
         if sma_long > sma_short:
