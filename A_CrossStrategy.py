@@ -7,7 +7,7 @@ import numpy as np
 
 class CrossStrategy:
 
-    def __init__(self, base_currency_name="usdt", aim_currency_name="btc", last_action=None):
+    def __init__(self, base_currency_name="usdt", aim_currency_name="btc"):
         """
         构造函数
         :param base_currency_name:  基准货币
@@ -35,7 +35,8 @@ class CrossStrategy:
         self.aim_currency_name = aim_currency_name
 
         # 初始化交易信号，避免在金叉或者死叉中多次重复交易
-        self.last_action = last_action
+        self.last_action = self.database.select("SELECT signal_value FROM trade_signal WHERE "
+                                                "signal_name = 'last_action'")[0][0]
 
         # 初始化资金信息
         try:
@@ -59,7 +60,7 @@ class CrossStrategy:
                                period='30min', size=50)
         except Exception as E:
             log.error(E)
-            # get_data()
+            time.sleep(60)
         k_line_long = []  # 60日均线
         k_line_short = []  # 30日均线
 
@@ -90,13 +91,19 @@ class CrossStrategy:
                       self.base_amount, self.aim_amount, self.last_action))
             if self.base_amount >= 1 and self.aim_amount < 0.0010:
                 # 上次交易并为产生买入信号
-                if self.last_action == "sell" or self.last_action is None:
+                if self.last_action == "sell":
                     result = buy_currency(database=self.database, scli=self.scli,
                                           base_currency_name=self.base_currency_name,
                                           aim_currency_name=self.aim_currency_name)
                     if result['status'] == 'ok':
-                        # 更新上次操作信号和账户余额
-                        self.last_action = 'buy'
+                        # 更新上次操作信号
+                        self.database("UPDATE trade_signal SET signal_value = 'buy' WHERE "
+                                      "signal_name = 'last_action'")
+                        self.last_action = self.database.select(
+                            "SELECT signal_value FROM trade_signal WHERE signal_name = "
+                            "'last_action'")[0][0]
+
+                        # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(
                             base_currency_name=self.base_currency_name,
                             aim_currency_name=self.aim_currency_name)
@@ -115,13 +122,19 @@ class CrossStrategy:
                       self.base_amount, self.aim_amount, self.last_action))
             if self.aim_amount >= 0.0010:
                 # 上次交易并为产生卖出信号
-                if self.last_action == 'buy' or self.last_action is None:
+                if self.last_action == 'buy':
                     result = sell_currency(database=self.database, scli=self.scli,
                                            base_currency_name=self.base_currency_name,
                                            aim_currency_name=self.aim_currency_name)
                     if result['status'] == 'ok':
-                        # 更新上次操作信号和账户余额
-                        self.last_action = 'sell'
+                        # 更新上次操作信号
+                        self.database("UPDATE trade_signal SET signal_value = 'sell' WHERE "
+                                      "signal_name = 'last_action'")
+                        self.last_action = self.database.select(
+                            "SELECT signal_value FROM trade_signal WHERE signal_name = "
+                            "'last_action'")[0][0]
+
+                        # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(
                             base_currency_name=self.base_currency_name,
                             aim_currency_name=self.aim_currency_name)
@@ -131,8 +144,7 @@ class CrossStrategy:
                         time.sleep(60 * 30)
 
 if __name__ == '__main__':
-    cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc',
-                                   last_action='sell')
+    cross_strategy = CrossStrategy(base_currency_name='usdt', aim_currency_name='btc')
     while 1:
         try:
             sma_long, sma_short, current_price = cross_strategy.get_data()
