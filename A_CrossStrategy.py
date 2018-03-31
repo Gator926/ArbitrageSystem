@@ -15,8 +15,8 @@ class CrossStrategy:
         """
         # 初始化数据库配置
         try:
-            self.database = Database(settings['host'], settings['port'], settings['user'], settings[
-                'pass'], settings['database_name'])
+            self.database = Database(settings['host'], settings['port'], settings['user'], settings['pass'],
+                                     settings['database_name'])
             log.info("初始化数据库成功")
         except Exception as E:
             log.error(E)
@@ -35,8 +35,8 @@ class CrossStrategy:
         self.aim_currency_name = aim_currency_name
 
         # 初始化交易信号，避免在金叉或者死叉中多次重复交易
-        self.last_action = self.database.select("SELECT signal_value FROM trade_signal WHERE "
-                                                "signal_name = 'last_action'")[0][0]
+        self.last_action = self.database.select("SELECT signal_value FROM trade_signal WHERE signal_name = "
+                                                "'last_action'")[0][0]
 
         # 初始化资金信息
         try:
@@ -56,8 +56,7 @@ class CrossStrategy:
         """
         # 获取K线数据
         try:
-            result = get_kline(symbol=self.aim_currency_name+self.base_currency_name,
-                               period='30min', size=50)
+            result = get_kline(symbol=self.aim_currency_name+self.base_currency_name, period='30min', size=50)
         except Exception as E:
             log.error(E)
             time.sleep(60)
@@ -85,9 +84,8 @@ class CrossStrategy:
         # 短期均线高于长期均线，形成金叉
         if sma_long < sma_short:
             # 现有资金满足交易阀值
-            log.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    "
-                     "当前基础货币为：%f    当前目标货币为：%f    上次交易信号为:%s" %
-                     ((sma_short - sma_long), sma_long, sma_short, current_price,
+            log.info("系统处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    当前基础货币为：%f    "
+                     "当前目标货币为：%f    上次交易信号为:%s" % ((sma_short - sma_long), sma_long, sma_short, current_price,
                       self.base_amount, self.aim_amount, self.last_action))
             if self.base_amount >= 1 and self.aim_amount < 0.0010:
                 # 上次交易并为产生买入信号
@@ -97,16 +95,13 @@ class CrossStrategy:
                                           aim_currency_name=self.aim_currency_name)
                     if result['status'] == 'ok':
                         # 更新上次操作信号
-                        self.database("UPDATE trade_signal SET signal_value = 'buy' WHERE "
-                                      "signal_name = 'last_action'")
-                        self.last_action = self.database.select(
-                            "SELECT signal_value FROM trade_signal WHERE signal_name = "
-                            "'last_action'")[0][0]
+                        self.database("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = 'last_action'")
+                        self.last_action = self.database.select("SELECT signal_value FROM trade_signal WHERE "
+                                                                "signal_name = 'last_action'")[0][0]
 
                         # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(
-                            base_currency_name=self.base_currency_name,
-                            aim_currency_name=self.aim_currency_name)
+                            base_currency_name=self.base_currency_name, aim_currency_name=self.aim_currency_name)
                         log.info("将上次操作信号更新为" + self.last_action)
                         # 避免价格波动出现多次交叉
                         log.info("交易成功，休眠30分钟")
@@ -116,9 +111,8 @@ class CrossStrategy:
         # 短期均线低于长期均线，形成死叉
         if sma_long > sma_short:
             # 现有资金满足交易阀值
-            log.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    "
-                     "当前基础货币为：%f    当前目标货币为：%f    上次交易信号为:%s" %
-                     ((sma_long - sma_short), sma_long, sma_short, current_price,
+            log.info("系统处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    当前基础货币为：%f    "
+                     "当前目标货币为：%f    上次交易信号为:%s" % ((sma_long - sma_short), sma_long, sma_short, current_price,
                       self.base_amount, self.aim_amount, self.last_action))
             if self.aim_amount >= 0.0010:
                 # 上次交易并为产生卖出信号
@@ -128,11 +122,9 @@ class CrossStrategy:
                                            aim_currency_name=self.aim_currency_name)
                     if result['status'] == 'ok':
                         # 更新上次操作信号
-                        self.database("UPDATE trade_signal SET signal_value = 'sell' WHERE "
-                                      "signal_name = 'last_action'")
+                        self.database("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = 'last_action'")
                         self.last_action = self.database.select(
-                            "SELECT signal_value FROM trade_signal WHERE signal_name = "
-                            "'last_action'")[0][0]
+                            "SELECT signal_value FROM trade_signal WHERE signal_name = 'last_action'")[0][0]
 
                         # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(
@@ -148,8 +140,7 @@ if __name__ == '__main__':
     while 1:
         try:
             sma_long, sma_short, current_price = cross_strategy.get_data()
-            cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short,
-                                         current_price=current_price)
+            cross_strategy.main_strategy(sma_long=sma_long, sma_short=sma_short, current_price=current_price)
         except Exception as E:
             log.error(E)
         time.sleep(60)
