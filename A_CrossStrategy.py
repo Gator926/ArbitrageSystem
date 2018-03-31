@@ -47,9 +47,6 @@ class CrossStrategy:
     def get_data(self):
         """
         获取K线的书，并求出30日和60日均线的平均值
-        :param base_currency_name: 基准货币
-        :param aim_currency_name:  欲购买的货币
-        :return:
         """
         # 获取K线数据
         try:
