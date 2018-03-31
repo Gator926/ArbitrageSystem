@@ -132,7 +132,7 @@ def send_order(amount, source, symbol, _type, price=0):
         accounts = get_accounts()
         acct_id = accounts['data'][0]['id']
     except BaseException as e:
-        logger('get acct_id error.%s' % e)
+        log.error('get acct_id error.%s' % e)
         acct_id = ACCOUNT_ID
 
     params = {"account-id": acct_id,
@@ -308,7 +308,7 @@ def send_margin_order(amount, source, symbol, _type, price=0):
         accounts = get_accounts()
         acct_id = accounts['data'][0]['id']
     except BaseException as e:
-        logger('get acct_id error.%s' % e)
+        log.error('get acct_id error.%s' % e)
         acct_id = ACCOUNT_ID
 
     params = {"account-id": acct_id,
