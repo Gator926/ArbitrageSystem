@@ -108,7 +108,7 @@ class CrossStrategy:
                                            self.aim_currency_accuracy)
                     if result['status'] == 'ok':
                         # 更新上次操作信号
-                        database("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = 'last_action'")
+                        database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = 'last_action'")
                         self.last_action = database.select(
                             "SELECT signal_value FROM trade_signal WHERE signal_name = 'last_action'")[0][0]
 
