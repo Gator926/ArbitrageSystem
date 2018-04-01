@@ -113,7 +113,7 @@ class CrossStrategy:
                             "SELECT signal_value FROM trade_signal WHERE signal_name = 'last_action'")[0][0]
 
                         # 更新账户余额
-                        self.base_amount, self.aim_amount = get_account_balance(self.base_currency_name,
+                        self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
                                                                                 self.aim_currency_name)
                         log.info("将上次操作信号更新为" + self.last_action)
                         # 避免价格波动出现多次交叉
