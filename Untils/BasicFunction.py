@@ -114,7 +114,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
                                              % (base_currency_name, aim_currency_name))[0][0]
                     database.update("UPDATE trade_cross_pair SET rest_amount = '%s' WHERE base_currency_name = '%s' "
                                     "and aim_currency_name = '%s'"
-                                    % (str(Decimal(info['data']['field-cash-amount']) - Decimal(number)),
+                                    % (str(Decimal(info['data']['field-cash-amount']) + Decimal(number)),
                                        base_currency_name, aim_currency_name))
                 except Exception as E:
                     log.error("SQL执行错误")
