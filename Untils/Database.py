@@ -1,3 +1,4 @@
+from Untils.Log import *
 import pymysql
 
 
@@ -33,9 +34,12 @@ class Database:
         :param table_name: 数据库表名
         :param sql: 待执行的SQL语句
         """
-        cursor = self.database.cursor()
-        cursor.execute("DROP TABLE IF EXISTS " + table_name)
-        cursor.execute(sql)
+        try:
+            cursor = self.database.cursor()
+            cursor.execute("DROP TABLE IF EXISTS " + table_name)
+            cursor.execute(sql)
+        except Exception as E:
+            log.error(E)
 
     def insert(self, sql):
         """
@@ -49,9 +53,9 @@ class Database:
             self.database.commit()
             print("插入成功")
         except Exception as E:
+            log.error(E)
+            log.error("Insert Fails")
             self.database.rollback()
-            print(E)
-            print("插入失败")
 
     def select(self, sql):
         """
@@ -64,8 +68,9 @@ class Database:
             cursor.execute(sql)
             results = cursor.fetchall()
             return results
-        except:
-            print("Error: unable to fetch data")
+        except Exception as E:
+            log.error(E)
+            log.error("Error: unable to fetch data")
 
     def update(self, sql):
         """
@@ -76,7 +81,9 @@ class Database:
         try:
             cursor.execute(sql)
             self.database.commit()
-        except:
+        except Exception as E:
+            log.error(E)
+            log.error("Update Fails")
             self.database.rollback()
 
     def delete(self, sql):
@@ -88,5 +95,7 @@ class Database:
         try:
             cursor.execute(sql)
             self.database.commit()
-        except:
+        except Exception as E:
+            log.error(E)
+            log.error("Delete Fails")
             self.database.rollback()
