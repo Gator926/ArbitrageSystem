@@ -21,4 +21,3 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 # 指定日志的最低输出级别，默认为WARN级别
 logger.setLevel(logging.INFO)
-print("hello")1
