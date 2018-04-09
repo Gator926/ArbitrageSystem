@@ -92,6 +92,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
         number = number[0: len(aim_currency_accuracy)-aim_currency_accuracy.index(".")+1]
         result = send_order(amount=number, source='api',
                             symbol=aim_currency_name+base_currency_name, _type='sell-market')
+        log.info("*********result的日志如下*********")
         log.info(result)
     except Exception as E:
         log.error(E)
@@ -112,6 +113,10 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
                     number = database.select("SELECT rest_amount FROM trade_cross_pair WHERE base_currency_name = "
                                              "'%s' and aim_currency_name = '%s'"
                                              % (base_currency_name, aim_currency_name))[0][0]
+                except Exception as E:
+                    log.error("SQL执行错误")
+                    log.error(E)
+                try:
                     database.update("UPDATE trade_cross_pair SET rest_amount = '%s' WHERE base_currency_name = '%s' "
                                     "and aim_currency_name = '%s'"
                                     % (str(Decimal(info['data']['field-cash-amount']) + Decimal(number)),
