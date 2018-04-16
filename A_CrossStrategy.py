@@ -143,6 +143,8 @@ if __name__ == '__main__':
                              "aim_currency_name = 'btc'")
     for each_pair in result:
         trad_pairs.append(CrossStrategy(each_pair, database, scli))
+
+    number = 0
     while 1:
         for pairs_number in range(0, len(trad_pairs)):
             try:
@@ -150,4 +152,11 @@ if __name__ == '__main__':
                 trad_pairs[pairs_number].main_strategy(sma_long, sma_short, current_price)
             except Exception as E:
                 log.error(E)
+            if number >= 10:
+                number = 0
+                try:
+                    database.select("select id from trade_signal limit 1")
+                except Exception as E:
+                    log.error(E)
+            number += 1
             time.sleep(60)
