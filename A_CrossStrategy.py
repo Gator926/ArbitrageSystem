@@ -27,7 +27,7 @@ class CrossStrategy:
 
         # 初始化交易信号，避免在金叉或者死叉中多次重复交易
         self.last_action = database.select("SELECT signal_value FROM trade_signal WHERE signal_name = "
-                                           "'last_action'")[0][0]
+                                           "'%s'" % self.aim_currency_name)[0][0]
 
         # 初始化资金信息
         try:
@@ -81,9 +81,10 @@ class CrossStrategy:
                     result = buy_currency(database, scli, self.base_currency_name, self.aim_currency_name)
                     if result['status'] == 'ok':
                         # 更新上次操作信号
-                        database.update("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = 'last_action'")
+                        database.update("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = '%s'" %
+                                        self.aim_currency_name)
                         self.last_action = database.select("SELECT signal_value FROM trade_signal WHERE "
-                                                                "signal_name = 'last_action'")[0][0]
+                                                                "signal_name = '%s'" % self.aim_currency_name)[0][0]
 
                         # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
@@ -108,9 +109,10 @@ class CrossStrategy:
                                            self.aim_currency_accuracy)
                     if result['status'] == 'ok':
                         # 更新上次操作信号
-                        database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = 'last_action'")
+                        database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = '%s'" %
+                                        self.aim_currency_name)
                         self.last_action = database.select(
-                            "SELECT signal_value FROM trade_signal WHERE signal_name = 'last_action'")[0][0]
+                            "SELECT signal_value FROM trade_signal WHERE signal_name = '%s'" % self.aim_currency_name)[0][0]
 
                         # 更新账户余额
                         self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
@@ -152,6 +154,8 @@ if __name__ == '__main__':
                 trad_pairs[pairs_number].main_strategy(sma_long, sma_short, current_price)
             except Exception as E:
                 log.error(E)
+
+            # 防止MySQL长时间无连接而关闭
             if number >= 10:
                 number = 0
                 try:
