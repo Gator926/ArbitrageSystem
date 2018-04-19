@@ -101,6 +101,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
             sql = "insert into trade_history (order_id) values ('%s')" % result['data']
             database.insert(sql)
         except Exception as E:
+            log.error("101行程序报错")
             log.error(sql)
             log.error(E)
 
@@ -114,6 +115,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
                                              "'%s' and aim_currency_name = '%s'"
                                              % (base_currency_name, aim_currency_name))[0][0]
                 except Exception as E:
+                    log.error("114行程序报错")
                     log.error("SQL执行错误")
                     log.error(E)
                 try:
@@ -122,6 +124,7 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
                                     % (str(Decimal(info['data']['field-cash-amount']) + Decimal(number)),
                                        base_currency_name, aim_currency_name))
                 except Exception as E:
+                    log.error("122行程序报错")
                     log.error("SQL执行错误")
                     log.error(E)
                 Finish = False
