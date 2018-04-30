@@ -33,7 +33,7 @@ class CrossStrategy:
         try:
             self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
                                                                     self.aim_currency_name)
-            log.info("初始化资金账户成功")
+            log.info("%s初始化资金账户成功" % self.aim_currency_name)
         except Exception as E:
             log.error(E)
 
@@ -70,7 +70,7 @@ class CrossStrategy:
         # 获取上次交易时间
         try:
             update_time = database.select("select unix_timestamp(update_time) from trade_cross_pair where "
-                                          "aim_currency_name = %s" % self.aim_currency_name)[0][0]
+                                          "aim_currency_name = '%s'" % self.aim_currency_name)[0][0]
         except Exception as E:
             log.error(E)
 
