@@ -3,7 +3,7 @@ from Untils.Database import *
 from Untils.BasicFunction import *
 from HuobiServices import *
 import numpy as np
-
+import time
 
 class CrossStrategy:
 
@@ -67,6 +67,13 @@ class CrossStrategy:
         return sma_long, sma_short, k_line_long[0]
 
     def main_strategy(self, sma_long, sma_short, current_price):
+        # 获取上次交易时间
+        try:
+            update_time = database.select("select unix_timestamp(update_time) from trade_cross_pair where "
+                                          "aim_currency_name = %s" % self.aim_currency_name)[0][0]
+        except Exception as E:
+            log.error(E)
+
         # 短期均线高于长期均线，形成金叉
         if sma_long < sma_short:
             # 现有资金满足交易阀值
@@ -81,19 +88,20 @@ class CrossStrategy:
                 if self.last_action == "sell":
                     result = buy_currency(database, scli, self.base_currency_name, self.aim_currency_name)
                     if result['status'] == 'ok':
-                        # 更新上次操作信号
-                        database.update("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = '%s'" %
-                                        self.aim_currency_name)
-                        self.last_action = database.select("SELECT signal_value FROM trade_signal WHERE "
-                                                                "signal_name = '%s'" % self.aim_currency_name)[0][0]
+                        if time.time() - update_time > 30 * 60:
+                            # 更新上次操作信号
+                            database.update("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = '%s'" %
+                                            self.aim_currency_name)
+                            self.last_action = database.select("SELECT signal_value FROM trade_signal WHERE "
+                                                                    "signal_name = '%s'" % self.aim_currency_name)[0][0]
 
-                        # 更新账户余额
-                        self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
-                                                                                self.aim_currency_name)
-                        log.info("将上次操作信号更新为" + self.last_action)
-                        # 避免价格波动出现多次交叉
-                        # log.info("交易成功，休眠30分钟")
-                        # time.sleep(60*30)
+                            # 更新账户余额
+                            self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
+                                                                                    self.aim_currency_name)
+                            log.info("将上次操作信号更新为" + self.last_action)
+                            # 避免价格波动出现多次交叉
+                            # log.info("交易成功，休眠30分钟")
+                            # time.sleep(60*30)
 
         # 短期均线低于长期均线，形成死叉
         if sma_long > sma_short:
@@ -110,19 +118,20 @@ class CrossStrategy:
                     result = sell_currency(database, scli, self.base_currency_name, self.aim_currency_name,
                                            self.aim_currency_accuracy)
                     if result['status'] == 'ok':
-                        # 更新上次操作信号
-                        database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = '%s'" %
-                                        self.aim_currency_name)
-                        self.last_action = database.select(
-                            "SELECT signal_value FROM trade_signal WHERE signal_name = '%s'" % self.aim_currency_name)[0][0]
+                        if time.time() - update_time > 30 * 60:
+                            # 更新上次操作信号
+                            database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = '%s'" %
+                                            self.aim_currency_name)
+                            self.last_action = database.select(
+                                "SELECT signal_value FROM trade_signal WHERE signal_name = '%s'" % self.aim_currency_name)[0][0]
 
-                        # 更新账户余额
-                        self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
-                                                                                self.aim_currency_name)
-                        log.info("将上次操作信号更新为" + self.last_action)
-                        # 避免价格波动出现多次交叉
-                        # log.info("交易成功，休眠30分钟")
-                        # time.sleep(60 * 30)
+                            # 更新账户余额
+                            self.base_amount, self.aim_amount = get_account_balance(database, self.base_currency_name,
+                                                                                    self.aim_currency_name)
+                            log.info("将上次操作信号更新为" + self.last_action)
+                            # 避免价格波动出现多次交叉
+                            # log.info("交易成功，休眠30分钟")
+                            # time.sleep(60 * 30)
 
 
 if __name__ == '__main__':
