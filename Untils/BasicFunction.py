@@ -107,8 +107,8 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
 
         # 防止订单未完成
         Finish = True
-        info = order_info(result['data'])
         while Finish:
+            info = order_info(result['data'])
             if info['data']['state'] == 'filled':
                 try:
                     number = database.select("SELECT rest_amount FROM trade_cross_pair WHERE base_currency_name = "
@@ -130,6 +130,8 @@ def sell_currency(database, scli, base_currency_name, aim_currency_name, aim_cur
                 Finish = False
             else:
                 time.sleep(5)
+                log.info("订单未完成循环中")
+                log.info(info['data']['state'])
         try:
             resp = scli.request(phone_numbers=settings['phone'],
                                sign=settings['sign'],
