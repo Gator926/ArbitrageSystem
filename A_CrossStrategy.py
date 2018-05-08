@@ -86,9 +86,9 @@ class CrossStrategy:
                     Decimal(self.aim_currency_accuracy):
                 # 上次交易并为产生买入信号
                 if self.last_action == "sell":
-                    result = buy_currency(database, scli, self.base_currency_name, self.aim_currency_name)
-                    if result['status'] == 'ok':
-                        if time.time() - update_time > 30 * 60:
+                    if time.time() - update_time > 30 * 60:
+                        result = buy_currency(database, scli, self.base_currency_name, self.aim_currency_name)
+                        if result['status'] == 'ok':
                             # 更新上次操作信号
                             database.update("UPDATE trade_signal SET signal_value = 'buy' WHERE signal_name = '%s'" %
                                             self.aim_currency_name)
@@ -115,10 +115,10 @@ class CrossStrategy:
             if Decimal(self.aim_amount) >= Decimal(self.aim_currency_accuracy):
                 # 上次交易并为产生卖出信号
                 if self.last_action == 'buy':
-                    result = sell_currency(database, scli, self.base_currency_name, self.aim_currency_name,
-                                           self.aim_currency_accuracy)
-                    if result['status'] == 'ok':
-                        if time.time() - update_time > 30 * 60:
+                    if time.time() - update_time > 30 * 60:
+                        result = sell_currency(database, scli, self.base_currency_name, self.aim_currency_name,
+                                               self.aim_currency_accuracy)
+                        if result['status'] == 'ok':
                             # 更新上次操作信号
                             database.update("UPDATE trade_signal SET signal_value = 'sell' WHERE signal_name = '%s'" %
                                             self.aim_currency_name)
