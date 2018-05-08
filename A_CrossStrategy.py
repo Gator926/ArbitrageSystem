@@ -78,9 +78,9 @@ class CrossStrategy:
         if sma_long < sma_short:
             # 现有资金满足交易阀值
             log.info("%s处于金叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    当前基础货币为：%f    "
-                     "当前目标货币为：%f    上次交易信号为:%s" % (self.aim_currency_name, (sma_short - sma_long), sma_long,
-                                                   sma_short, current_price, self.base_amount, self.aim_amount,
-                                                   self.last_action))
+                     "当前目标货币为：%f    上次交易信号为:%s    上次交易时间为:%s" %
+                     (self.aim_currency_name, (sma_short - sma_long), sma_long, sma_short, current_price,
+                      self.base_amount, self.aim_amount, self.last_action, update_time))
 
             if Decimal(self.base_amount) >= Decimal(self.base_currency_accuracy) and Decimal(self.aim_amount) < \
                     Decimal(self.aim_currency_accuracy):
@@ -108,9 +108,9 @@ class CrossStrategy:
 
             # 现有资金满足交易阀值
             log.info("%s处于死叉中, 现差价：%f    长期均线为：%f    短期均线为：%f    当前价格为：%f    当前基础货币为：%f    "
-                     "当前目标货币为：%f    上次交易信号为:%s" % (self.aim_currency_name, (sma_long - sma_short), sma_long,
-                                                   sma_short, current_price, self.base_amount, self.aim_amount,
-                                                   self.last_action))
+                     "当前目标货币为：%f    上次交易信号为:%s    上次交易时间为:%s" %
+                     (self.aim_currency_name, (sma_long - sma_short), sma_long, sma_short, current_price,
+                      self.base_amount, self.aim_amount, self.last_action, update_time))
 
             if Decimal(self.aim_amount) >= Decimal(self.aim_currency_accuracy):
                 # 上次交易并为产生卖出信号
